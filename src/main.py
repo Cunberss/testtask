@@ -3,6 +3,7 @@ from src.bot import bot, dp
 import logging
 from loguru import logger
 from src.handlers.messages import router as messages_router
+from src.handlers.commands import router as commands_router
 
 logger.add("logs/{time:YYYY-MM-DD}_logfile.log",
            format="{time} {level} {message}",
@@ -35,6 +36,7 @@ async def main():
     logging.getLogger('asyncio').addHandler(InterceptHandler())
     await bot.delete_webhook(drop_pending_updates=True)
     dp.include_router(messages_router)
+    dp.include_router(commands_router)
     await dp.start_polling(bot)
 
 
