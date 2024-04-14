@@ -61,7 +61,6 @@ def aggregate_salary_data(dt_from: str, dt_upto: str, group_type: str):
         labels.append(f"{year}-{month:02d}-{day:02d}T{hour:02d}:00:00")
         dataset.append(doc["total"])
 
-    print(dataset, labels)
     data = fill_missing_dates(dataset, labels, dt_from, dt_upto, group_type)
     answer = {"dataset": data[0], "labels": data[1]}
     return str(answer)
