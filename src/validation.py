@@ -15,13 +15,11 @@ def validate_input(input_string: str) -> bool:
     try:
         input_dict = json.loads(input_string)
     except json.JSONDecodeError as e:
-        print("Invalid JSON format:", e)
         return False
 
     try:
         validate(input_dict, schema)
     except ValidationError as e:
-        print("Input validation error:", e)
         return False
 
     return input_dict
