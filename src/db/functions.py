@@ -1,9 +1,12 @@
+import asyncio
+import concurrent.futures
+
 from src.db.mongo_client import collection
 from datetime import datetime
 import pandas as pd
 
 
-def aggregate_salary_data(dt_from: str, dt_upto: str, group_type: str):
+async def aggregate_salary_data(dt_from: str, dt_upto: str, group_type: str):
     dt_from = datetime.fromisoformat(dt_from)
     dt_upto = datetime.fromisoformat(dt_upto)
 
@@ -53,7 +56,7 @@ def aggregate_salary_data(dt_from: str, dt_upto: str, group_type: str):
     dataset = []
     labels = []
 
-    for doc in result:
+    async for doc in result:
         year = doc["_id"]["year"]
         month = doc["_id"]["month"]
         day = doc["_id"].get("day", 1)
@@ -61,7 +64,11 @@ def aggregate_salary_data(dt_from: str, dt_upto: str, group_type: str):
         labels.append(f"{year}-{month:02d}-{day:02d}T{hour:02d}:00:00")
         dataset.append(doc["total"])
 
-    data = fill_missing_dates(dataset, labels, dt_from, dt_upto, group_type)
+    loop = asyncio.get_running_loop()
+
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        data = await loop.run_in_executor(pool, fill_missing_dates, dataset, labels, dt_from, dt_upto, group_type)
+
     answer = {"dataset": data[0], "labels": data[1]}
     return str(answer)
 
