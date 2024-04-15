@@ -73,14 +73,23 @@ async def aggregate_salary_data(dt_from: str, dt_upto: str, group_type: str):
     return str(answer)
 
 
-def fill_missing_dates(dataset, labels, start_date, end_date, group_type):
-    labels = pd.to_datetime(labels).to_period('M') if group_type == 'month' else pd.to_datetime(labels)
-    start_date = pd.to_datetime(start_date)
-    end_date = pd.to_datetime(end_date)
-    series = pd.Series(dataset, index=labels)
-    freq = 'D' if group_type == 'day' else 'M' if group_type == 'month' else 'H'
-    index = pd.date_range(start=start_date, end=end_date, freq=freq)
-    if group_type == 'month':
-        index = index.to_period('M')
-    series = series.reindex(index, fill_value=0)
-    return series.values.tolist(), series.index.strftime('%Y-%m-%dT%H:%M:%S').tolist()
+def fill_missing_dates(number_list, date_list, start_date, end_date, group_format):
+    date_list = pd.to_datetime(date_list)
+
+    if group_format == 'hour':
+        full_dates = pd.date_range(start=start_date, end=end_date, freq='H')
+        anchor = 'H'
+    elif group_format == 'day':
+        full_dates = pd.date_range(start=start_date, end=end_date, freq='D')
+        anchor = 'D'
+    elif group_format == 'month':
+        full_dates = pd.date_range(start=start_date, end=end_date, freq='MS')  # 'MS' Stands for Month Start frequency
+        anchor = 'MS'
+
+    df_numbers = pd.DataFrame({'Date': date_list, 'Number': number_list}).set_index('Date').resample(
+        anchor).first().reset_index()
+    df_dates = pd.DataFrame({'Date': full_dates})
+
+    merged_df = pd.merge(df_dates, df_numbers, on='Date', how='left').fillna(0)
+
+    return list(map(int,(merged_df['Number']))), list(merged_df['Date'].dt.strftime('%Y-%m-%dT%H:%M:%S'))
