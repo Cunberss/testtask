@@ -2,7 +2,7 @@ import json
 from jsonschema import validate, ValidationError
 
 
-def validate_input(input_string: str) -> bool:
+def validate_input(input_string: str):
     schema = {
         "type" : "object",
         "properties" : {
